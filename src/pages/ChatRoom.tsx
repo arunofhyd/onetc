@@ -13,7 +13,10 @@ import {
   Users, 
   Shield, 
   Trash2,
-  CheckCircle 
+  CheckCircle,
+  Crown,
+  AlertCircle,
+  Plus
 } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +36,8 @@ export default function ChatRoom() {
     loading,
     sending,
     roomExists,
+    roomHost,
+    isCreator,
     currentUserId,
     sendMessage,
     createRoom
@@ -43,18 +48,23 @@ export default function ChatRoom() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle room creation if it doesn't exist
-  useEffect(() => {
-    if (!loading && !roomExists && roomKey) {
-      createRoom();
-    }
-  }, [loading, roomExists, roomKey, createRoom]);
+  // Don't auto-create rooms - let user explicitly decide
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     
     await sendMessage(message);
     setMessage('');
+  };
+
+  const handleCreateRoom = async () => {
+    const success = await createRoom();
+    if (success) {
+      toast({
+        title: "Room Created!",
+        description: "You are now the host of this room.",
+      });
+    }
   };
 
   const handleCopyRoomKey = async () => {
@@ -106,6 +116,30 @@ export default function ChatRoom() {
     );
   }
 
+  if (!loading && !roomExists) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertCircle className="h-16 w-16 mx-auto mb-4 text-destructive" />
+          <h1 className="text-2xl font-bold mb-4">Room Not Found</h1>
+          <p className="text-muted-foreground mb-6">
+            The room key <span className="font-mono text-primary">{roomKey}</span> doesn't exist.
+          </p>
+          <div className="space-y-4">
+            <Button onClick={handleCreateRoom} className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Create This Room
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/')} className="w-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Return Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -126,10 +160,23 @@ export default function ChatRoom() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
-              <Badge variant="secondary">{users.length} online</Badge>
+              <div className="flex items-center space-x-2">
+                <Badge variant="secondary">{users.length} online</Badge>
+                {users.map((user) => (
+                  <Badge 
+                    key={user.id} 
+                    variant={user.isHost ? "default" : "outline"}
+                    className="flex items-center gap-1"
+                  >
+                    {user.isHost && <Crown className="h-3 w-3" />}
+                    {user.name}
+                    {user.isHost && " (HOST)"}
+                  </Badge>
+                ))}
+              </div>
             </div>
             <ThemeToggle />
           </div>
@@ -197,8 +244,11 @@ export default function ChatRoom() {
                         : 'bg-muted'
                     }`}
                   >
-                    <div className="text-xs opacity-75 mb-1">
-                      {msg.sender_id} • {formatTime(msg.created_at)}
+                    <div className="text-xs opacity-75 mb-1 flex items-center gap-1">
+                      {msg.sender_id === roomHost && <Crown className="h-3 w-3" />}
+                      {msg.sender_id.substring(0, 8)}
+                      {msg.sender_id === roomHost && " (HOST)"}
+                      • {formatTime(msg.created_at)}
                     </div>
                     <div className="break-words">
                       {msg.decrypted_content || '[Decryption failed]'}

@@ -14,6 +14,7 @@ export interface Message {
 export interface ChatUser {
   id: string;
   name: string;
+  isHost?: boolean;
 }
 
 export function useChat(roomKey: string) {
@@ -22,6 +23,8 @@ export function useChat(roomKey: string) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [roomExists, setRoomExists] = useState(false);
+  const [roomHost, setRoomHost] = useState<string>('');
+  const [isCreator, setIsCreator] = useState(false);
   const userIdRef = useRef<string>('');
   const channelRef = useRef<any>(null);
   const presenceChannelRef = useRef<any>(null);
@@ -40,10 +43,17 @@ export function useChat(roomKey: string) {
 
     const initializeRoom = async () => {
       try {
-        // Check if room exists
+        // Validate room key format (6 alphanumeric characters)
+        if (!/^[A-Z0-9]{6}$/.test(roomKey)) {
+          setRoomExists(false);
+          setLoading(false);
+          return;
+        }
+
+        // Check if room exists and get creator info
         const { data: room, error } = await supabase
           .from('rooms')
-          .select('id')
+          .select('id, created_at')
           .eq('id', roomKey)
           .maybeSingle();
 
@@ -61,6 +71,19 @@ export function useChat(roomKey: string) {
         }
 
         setRoomExists(true);
+
+        // Get the first message to identify the room creator/host
+        const { data: firstMessage } = await supabase
+          .from('messages')
+          .select('sender_id')
+          .eq('room_id', roomKey)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (firstMessage) {
+          setRoomHost(firstMessage.sender_id);
+        }
 
         // Fetch existing messages
         const { data: messagesData, error: messagesError } = await supabase
@@ -122,7 +145,8 @@ export function useChat(roomKey: string) {
               const state = presenceChannelRef.current.presenceState();
               const userList = Object.keys(state).map(key => ({
                 id: key,
-                name: key
+                name: key.substring(0, 8), // Show shorter name
+                isHost: key === roomHost
               }));
               setUsers(userList);
             }
@@ -194,6 +218,16 @@ export function useChat(roomKey: string) {
   }, [roomKey, sending, roomExists, toast]);
 
   const createRoom = useCallback(async () => {
+    // Validate room key format
+    if (!/^[A-Z0-9]{6}$/.test(roomKey)) {
+      toast({
+        title: "Invalid Room Key",
+        description: "Room key must be 6 alphanumeric characters.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     try {
       const { error } = await supabase
         .from('rooms')
@@ -205,6 +239,8 @@ export function useChat(roomKey: string) {
       }
 
       setRoomExists(true);
+      setRoomHost(userIdRef.current);
+      setIsCreator(true);
       return true;
     } catch (error) {
       console.error('Error creating room:', error);
@@ -223,6 +259,8 @@ export function useChat(roomKey: string) {
     loading,
     sending,
     roomExists,
+    roomHost,
+    isCreator,
     currentUserId: userIdRef.current,
     sendMessage,
     createRoom
