@@ -8,7 +8,8 @@ import CryptoJS from 'crypto-js';
  */
 export function encryptMessage(message: string, roomKey: string): string {
   try {
-    const encrypted = CryptoJS.AES.encrypt(message, roomKey).toString();
+    const encryptionKey = deriveEncryptionKey(roomKey);
+    const encrypted = CryptoJS.AES.encrypt(message, encryptionKey).toString();
     return encrypted;
   } catch (error) {
     console.error('Encryption failed:', error);
@@ -24,7 +25,8 @@ export function encryptMessage(message: string, roomKey: string): string {
  */
 export function decryptMessage(encryptedMessage: string, roomKey: string): string {
   try {
-    const decrypted = CryptoJS.AES.decrypt(encryptedMessage, roomKey);
+    const encryptionKey = deriveEncryptionKey(roomKey);
+    const decrypted = CryptoJS.AES.decrypt(encryptedMessage, encryptionKey);
     const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
     
     if (!plaintext) {
@@ -39,13 +41,34 @@ export function decryptMessage(encryptedMessage: string, roomKey: string): strin
 }
 
 /**
- * Generates a cryptographically secure random room key
- * @returns A random UUID-like string to be used as room key
+ * Generates a short, memorable room key for easy sharing
+ * @returns A 6-character alphanumeric string (e.g., "A4B9K2")
  */
 export function generateRoomKey(): string {
-  // Generate a secure random string using crypto-js
-  const randomBytes = CryptoJS.lib.WordArray.random(32); // 256 bits
-  return randomBytes.toString(CryptoJS.enc.Hex);
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars like I, L, O, 0, 1
+  let result = '';
+  
+  // Generate 6 random characters for easy word-of-mouth sharing
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
+}
+
+/**
+ * Generates a cryptographically secure encryption key from room key
+ * @param roomKey - The short room key
+ * @returns A secure encryption key derived from the room key
+ */
+export function deriveEncryptionKey(roomKey: string): string {
+  // Use PBKDF2 to derive a strong encryption key from the short room key
+  const salt = 'OneTC-Salt-2024'; // Static salt for consistency
+  const key = CryptoJS.PBKDF2(roomKey, salt, {
+    keySize: 256/32, // 256 bits
+    iterations: 10000
+  });
+  return key.toString(CryptoJS.enc.Hex);
 }
 
 /**
