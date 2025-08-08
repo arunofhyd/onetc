@@ -7,6 +7,7 @@ import { Lock, MessageCircle, Shield } from 'lucide-react';
 import { generateRoomKey } from '@/lib/encryption';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [roomKey, setRoomKey] = useState('');
@@ -18,6 +19,22 @@ const Index = () => {
     setLoading(true);
     try {
       const newRoomKey = generateRoomKey();
+      
+      // Create room in database
+      const { error } = await supabase
+        .from('rooms')
+        .insert({ id: newRoomKey });
+
+      if (error) {
+        console.error('Error creating room:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create room. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       navigate(`/room/${newRoomKey}`);
     } catch (error) {
       console.error('Error creating room:', error);
