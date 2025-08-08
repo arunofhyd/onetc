@@ -139,26 +139,34 @@ export default function ChatRoom() {
         <div className="px-4 pb-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Share this room key:</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Share this room key to invite others:
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center space-x-2">
-              <Input
-                readOnly
-                value={roomKey}
-                className="font-mono text-xs"
-              />
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={handleCopyRoomKey}
-                className="shrink-0"
-              >
-                {copied ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
+            <CardContent className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 bg-muted rounded-lg p-3 text-center">
+                  <div className="font-mono text-2xl font-bold tracking-widest text-primary">
+                    {roomKey}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Easy to share by voice or text
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleCopyRoomKey}
+                  className="shrink-0"
+                >
+                  {copied ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
