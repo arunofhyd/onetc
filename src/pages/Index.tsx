@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, MessageCircle, Shield } from 'lucide-react';
+import { Lock, Shield } from 'lucide-react';
 import { generateRoomKey } from '@/lib/encryption';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { supabase } from '@/integrations/supabase/client';
+import { Logo } from '@/components/Logo';
 
 const Index = () => {
   const [roomKey, setRoomKey] = useState('');
@@ -71,18 +72,9 @@ const Index = () => {
           {/* Header */}
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center mb-6">
-              <MessageCircle className="h-12 w-12 text-primary mr-3" />
-              <h1 className="text-4xl font-bold">OneTC</h1>
+              <Logo showText size={64} />
             </div>
-            <h2 className="text-2xl font-semibold">One-Time Chat</h2>
-            <div className="flex items-center justify-center space-x-2 text-muted-foreground">
-              <Shield className="h-4 w-4" />
-              <span className="text-sm">One-Time End-to-End Encrypted</span>
-              <Lock className="h-4 w-4" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Create anonymous, encrypted chat rooms that self-destruct when empty
-            </p>
+            <h1 className="sr-only">OneTC - One-Time End-to-End Encrypted Chat</h1>
           </div>
 
           {/* Actions */}
