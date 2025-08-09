@@ -21,6 +21,7 @@ import {
 import { useChat } from '@/hooks/useChat';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 
 export default function ChatRoom() {
   const { roomKey } = useParams<{ roomKey: string }>();
@@ -42,6 +43,8 @@ export default function ChatRoom() {
     sendMessage,
     createRoom
   } = useChat(roomKey || '');
+
+  const isHost = currentUserId === roomHost;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -269,11 +272,11 @@ export default function ChatRoom() {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your encrypted message..."
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              disabled={sending}
+              disabled={sending || (roomFull && !isHost)}
             />
             <Button 
               onClick={handleSendMessage} 
-              disabled={!message.trim() || sending}
+              disabled={!message.trim() || sending || (roomFull && !isHost)}
               size="icon"
             >
               <Send className="h-4 w-4" />

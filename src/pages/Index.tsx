@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { supabase } from '@/integrations/supabase/client';
 import { Logo } from '@/components/Logo';
+import { getClientId } from '@/lib/client';
 
 const Index = () => {
   const [roomKey, setRoomKey] = useState('');
@@ -24,7 +25,7 @@ const Index = () => {
       // Create room in database
       const { error } = await supabase
         .from('rooms')
-        .insert({ id: newRoomKey });
+        .insert({ id: newRoomKey, creator_id: getClientId() });
 
       if (error) {
         console.error('Error creating room:', error);

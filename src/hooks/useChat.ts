@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { encryptMessage, decryptMessage, generateUserId } from '@/lib/encryption';
+import { encryptMessage, decryptMessage } from '@/lib/encryption';
 import { useToast } from '@/hooks/use-toast';
-
+import { getClientId, getDisplayName } from '@/lib/client';
 export interface Message {
   id: string;
   content: string;
@@ -25,15 +25,16 @@ export function useChat(roomKey: string) {
   const [roomExists, setRoomExists] = useState(false);
   const [roomHost, setRoomHost] = useState<string>('');
   const [isCreator, setIsCreator] = useState(false);
+  const [roomFull, setRoomFull] = useState(false);
   const userIdRef = useRef<string>('');
   const channelRef = useRef<any>(null);
   const presenceChannelRef = useRef<any>(null);
   const { toast } = useToast();
 
-  // Generate user ID on mount
+  // Generate stable client info on mount
   useEffect(() => {
     if (!userIdRef.current) {
-      userIdRef.current = generateUserId();
+      userIdRef.current = getClientId();
     }
   }, []);
 
@@ -53,7 +54,7 @@ export function useChat(roomKey: string) {
         // Check if room exists and get creator info
         const { data: room, error } = await supabase
           .from('rooms')
-          .select('id, created_at')
+          .select('id, created_at, creator_id')
           .eq('id', roomKey)
           .maybeSingle();
 
@@ -72,7 +73,11 @@ export function useChat(roomKey: string) {
 
         setRoomExists(true);
 
-        // Get the first message to identify the room creator/host
+        if (room.creator_id) {
+          setRoomHost(room.creator_id);
+        }
+
+        // Get the first message to identify the room creator/host if creator_id missing
         const { data: firstMessage } = await supabase
           .from('messages')
           .select('sender_id')
@@ -81,7 +86,7 @@ export function useChat(roomKey: string) {
           .limit(1)
           .maybeSingle();
 
-        if (firstMessage) {
+        if (!room.creator_id && firstMessage) {
           setRoomHost(firstMessage.sender_id);
         }
 
@@ -143,18 +148,33 @@ export function useChat(roomKey: string) {
           .on('presence', { event: 'sync' }, () => {
             if (mounted) {
               const state = presenceChannelRef.current.presenceState();
-              const userList = Object.keys(state).map(key => ({
-                id: key,
-                name: key.substring(0, 8), // Show shorter name
+              const userList = Object.entries(state).map(([key, metas]: any) => ({
+                id: key as string,
+                name: (Array.isArray(metas) && metas[0]?.name) ? metas[0].name as string : (key as string).substring(0, 8),
                 isHost: key === roomHost
               }));
               setUsers(userList);
+              const count = Object.keys(state).length;
+              setRoomFull(count >= 50);
             }
           })
           .subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
+              const state = presenceChannelRef.current.presenceState();
+              const count = Object.keys(state).length;
+              const isHostUser = !!roomHost && userIdRef.current === roomHost;
+              if (count >= 50 && !isHostUser) {
+                setRoomFull(true);
+                toast({
+                  title: 'Room is full',
+                  description: 'This room has reached its 50-member limit.',
+                  variant: 'destructive'
+                });
+                return;
+              }
               await presenceChannelRef.current.track({
                 user_id: userIdRef.current,
+                name: getDisplayName(),
                 online_at: new Date().toISOString(),
               });
             }
@@ -231,7 +251,7 @@ export function useChat(roomKey: string) {
     try {
       const { error } = await supabase
         .from('rooms')
-        .insert({ id: roomKey });
+        .insert({ id: roomKey, creator_id: userIdRef.current });
 
       if (error) {
         console.error('Error creating room:', error);
@@ -260,6 +280,7 @@ export function useChat(roomKey: string) {
     sending,
     roomExists,
     roomHost,
+    roomFull,
     isCreator,
     currentUserId: userIdRef.current,
     sendMessage,
