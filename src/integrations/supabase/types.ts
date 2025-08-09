@@ -49,14 +49,17 @@ export type Database = {
       rooms: {
         Row: {
           created_at: string
+          creator_id: string | null
           id: string
         }
         Insert: {
           created_at?: string
+          creator_id?: string | null
           id: string
         }
         Update: {
           created_at?: string
+          creator_id?: string | null
           id?: string
         }
         Relationships: []
