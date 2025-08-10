@@ -71,12 +71,11 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-lg md:max-w-2xl space-y-8">
           {/* Header */}
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center mb-4">
-              <Logo showText={false} size={56} />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <Logo showText size={64} />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">One-Time End-to-End Encrypted</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Create anonymous, encrypted chat rooms that self-destruct when empty</p>
+            <h1 className="sr-only">OneTC - One-Time End-to-End Encrypted Chat</h1>
           </div>
 
           {/* Actions */}

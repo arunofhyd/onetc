@@ -148,14 +148,14 @@ export default function ChatRoom() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-3 md:p-4 flex-wrap gap-2">
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-lg font-semibold">OneTC Room</h1>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <h1 className="text-base md:text-lg font-semibold">OneTC Room</h1>
+              <div className="flex items-center space-x-2 text-xs md:text-sm text-muted-foreground">
                 <Shield className="h-3 w-3" />
                 <span>End-to-End Encrypted</span>
                 <Trash2 className="h-3 w-3" />
@@ -164,11 +164,11 @@ export default function ChatRoom() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2 md:gap-4 flex-wrap justify-end">
+            <div className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">{users.length} online</Badge>
+              <Badge variant="secondary">{users.length} online</Badge>
+              <div className="hidden md:flex items-center gap-2">
                 {users.map((user) => (
                   <Badge 
                     key={user.id} 
@@ -187,7 +187,7 @@ export default function ChatRoom() {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Users className="h-4 w-4" />
-                  Members
+                  <span className="hidden md:inline">Members</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -230,7 +230,7 @@ export default function ChatRoom() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div className="flex-1 bg-muted rounded-lg p-3 text-center">
                   <div className="font-mono text-2xl font-bold tracking-widest text-primary">
                     {roomKey}
@@ -240,7 +240,7 @@ export default function ChatRoom() {
                   variant="outline" 
                   size="icon" 
                   onClick={handleCopyRoomKey}
-                  className="shrink-0"
+                  className="self-center sm:shrink-0"
                 >
                   {copied ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
