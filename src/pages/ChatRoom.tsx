@@ -38,6 +38,7 @@ export default function ChatRoom() {
     sending,
     roomExists,
     roomHost,
+    roomFull,
     isCreator,
     currentUserId,
     sendMessage,
@@ -181,6 +182,40 @@ export default function ChatRoom() {
                 ))}
               </div>
             </div>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Members
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Room Members</DialogTitle>
+                  <DialogDescription>
+                    {users.length} of 50 online
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between rounded-md border p-2">
+                      <div className="flex items-center gap-2">
+                        {user.isHost && <Crown className="h-4 w-4 text-primary" />}
+                        <span className="font-medium">{user.name}</span>
+                      </div>
+                      <Badge variant={user.isHost ? 'default' : 'outline'}>
+                        {user.isHost ? 'Host' : 'Member'}
+                      </Badge>
+                    </div>
+                  ))}
+                  {users.length === 0 && (
+                    <div className="text-sm text-muted-foreground">No members online.</div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <ThemeToggle />
           </div>
         </div>
