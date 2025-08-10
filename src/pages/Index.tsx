@@ -73,11 +73,9 @@ const Index = () => {
           {/* Header */}
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center mb-4">
-              <Logo size={56} />
+              <Logo showText={false} size={56} />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">OneTC</h1>
-            <p className="text-base sm:text-lg text-muted-foreground">One-Time Chat</p>
-            <p className="text-sm sm:text-base text-muted-foreground">One-Time End-to-End Encrypted</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">One-Time End-to-End Encrypted</h1>
             <p className="text-sm sm:text-base text-muted-foreground">Create anonymous, encrypted chat rooms that self-destruct when empty</p>
           </div>
 

@@ -235,9 +235,6 @@ export default function ChatRoom() {
                   <div className="font-mono text-2xl font-bold tracking-widest text-primary">
                     {roomKey}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Easy to share by voice or text
-                  </div>
                 </div>
                 <Button 
                   variant="outline" 
