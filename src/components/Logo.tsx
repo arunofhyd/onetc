@@ -15,7 +15,7 @@ export function Logo({ showText = true, size = 48, className }: LogoProps) {
         src="/lovable-uploads/292a9b47-3a06-4164-a0bd-47aebeffe37b.png"
         alt="Chat bubble icon"
         className="shrink-0 invert-0 dark:invert"
-        style={{ height: size }}
+        style={{ height: size, width: size }}
         loading="lazy"
       />
       {showText && (

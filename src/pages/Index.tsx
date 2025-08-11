@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { supabase } from '@/integrations/supabase/client';
 import { Logo } from '@/components/Logo';
 import { getClientId } from '@/lib/client';
+import { Mail } from 'lucide-react';
 
 const Index = () => {
   const [roomKey, setRoomKey] = useState('');
@@ -142,6 +143,15 @@ const Index = () => {
             <p>🗑️ Rooms self-destruct when empty</p>
             <p>👤 No registration required</p>
           </div>
+
+          <footer className="mt-6 flex justify-center">
+            <Button asChild variant="ghost" size="sm" className="gap-2">
+              <a href="mailto:arunthomas04042001@gmail.com" aria-label="Reach out to the developer via email">
+                <Mail className="h-4 w-4" />
+                Reach out to the developer
+              </a>
+            </Button>
+          </footer>
         </div>
       </div>
     </div>
