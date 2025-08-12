@@ -46,34 +46,23 @@ export type Database = {
           },
         ]
       }
-      room_memberships: {
+      room_create_limits: {
         Row: {
-          id: string
-          joined_at: string
-          room_id: string
-          user_id: string
+          client_id: string
+          count: number
+          window_start: string
         }
         Insert: {
-          id?: string
-          joined_at?: string
-          room_id: string
-          user_id: string
+          client_id: string
+          count?: number
+          window_start?: string
         }
         Update: {
-          id?: string
-          joined_at?: string
-          room_id?: string
-          user_id?: string
+          client_id?: string
+          count?: number
+          window_start?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "room_memberships_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "rooms"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       rooms: {
         Row: {
@@ -98,7 +87,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_and_increment_room_limit: {
+        Args: { _client_id: string; _limit?: number; _window?: unknown }
+        Returns: boolean
+      }
+      create_room_anonymous: {
+        Args: { _room_id: string; _creator_client_id: string }
+        Returns: undefined
+      }
+      list_messages: {
+        Args: { _room_id: string; _limit?: number }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          room_id: string
+          sender_id: string
+        }[]
+      }
+      room_exists_anonymous: {
+        Args: { _room_id: string }
+        Returns: boolean
+      }
+      send_message_anonymous: {
+        Args: { _room_id: string; _client_id: string; _content: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
