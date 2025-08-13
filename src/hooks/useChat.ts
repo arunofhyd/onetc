@@ -51,36 +51,15 @@ export function useChat(roomKey: string) {
           return;
         }
 
-        // Require authenticated user
-        const { data: { session } } = await supabase.auth.getSession();
-        const authedUserId = session?.user?.id;
-        if (!authedUserId) {
-          setRoomExists(false);
-          setLoading(false);
-          return;
-        }
-
-        // Ensure membership (idempotent). If room doesn't exist, FK will fail.
-        const { error: membershipError } = await supabase
-          .from('room_memberships')
-          .upsert({ room_id: roomKey, user_id: authedUserId }, { onConflict: 'room_id,user_id' });
-
-        if (membershipError) {
-          // Room likely doesn't exist yet
-          setRoomExists(false);
-          setLoading(false);
-          return;
-        }
-
-        // At this point, user is a member -> can read room and messages
-        const { data: room, error: roomError } = await supabase
+        // Check if room exists and get creator info
+        const { data: room, error } = await supabase
           .from('rooms')
           .select('id, created_at, creator_id')
           .eq('id', roomKey)
           .maybeSingle();
 
-        if (roomError) {
-          console.error('Error checking room:', roomError);
+        if (error) {
+          console.error('Error checking room:', error);
           setRoomExists(false);
           setLoading(false);
           return;
@@ -219,7 +198,7 @@ export function useChat(roomKey: string) {
         supabase.removeChannel(presenceChannelRef.current);
       }
     };
-  }, [roomKey, roomExists]);
+  }, [roomKey]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || sending || !roomExists) return;
@@ -277,15 +256,6 @@ export function useChat(roomKey: string) {
       if (error) {
         console.error('Error creating room:', error);
         throw error;
-      }
-
-      // Add creator as a member
-      const { data: { session } } = await supabase.auth.getSession();
-      const authedUserId = session?.user?.id;
-      if (authedUserId) {
-        await supabase
-          .from('room_memberships')
-          .upsert({ room_id: roomKey, user_id: authedUserId }, { onConflict: 'room_id,user_id' });
       }
 
       setRoomExists(true);

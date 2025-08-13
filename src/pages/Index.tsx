@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,18 +17,6 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) {
-        navigate('/auth');
-      }
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) navigate('/auth');
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const handleCreateRoom = async () => {
     setLoading(true);

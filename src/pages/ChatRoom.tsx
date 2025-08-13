@@ -22,7 +22,6 @@ import { useChat } from '@/hooks/useChat';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function ChatRoom() {
   const { roomKey } = useParams<{ roomKey: string }>();
@@ -31,17 +30,6 @@ export default function ChatRoom() {
   const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
-  // Require auth
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) navigate('/auth');
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) navigate('/auth');
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const {
     messages,
