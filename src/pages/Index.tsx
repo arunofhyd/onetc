@@ -23,18 +23,27 @@ const Index = () => {
     try {
       const newRoomKey = generateRoomKey();
       
-      // Create room in database
-      const { error } = await supabase
-        .from('rooms')
-        .insert({ id: newRoomKey, creator_id: getClientId() });
+      // Create room using secure RPC function
+      const { error } = await supabase.rpc('create_room_anonymous', {
+        _room_id: newRoomKey,
+        _creator_client_id: getClientId()
+      });
 
       if (error) {
-        console.error('Error creating room:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create room. Please try again.",
-          variant: "destructive"
-        });
+        if (error.message === 'rate_limit_exceeded') {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "You can only create 30 rooms per hour. Please try again later.",
+            variant: "destructive"
+          });
+        } else {
+          console.error('Error creating room:', error);
+          toast({
+            title: "Error", 
+            description: "Failed to create room. Please try again.",
+            variant: "destructive"
+          });
+        }
         return;
       }
 

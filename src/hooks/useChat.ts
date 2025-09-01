@@ -51,21 +51,19 @@ export function useChat(roomKey: string) {
           return;
         }
 
-        // Check if room exists and get creator info
-        const { data: room, error } = await supabase
-          .from('rooms')
-          .select('id, created_at, creator_id')
-          .eq('id', roomKey)
-          .maybeSingle();
+        // Check if room exists using secure RPC function  
+        const { data: roomExists, error: roomError } = await supabase.rpc('room_exists_anonymous', {
+          _room_id: roomKey
+        });
 
-        if (error) {
-          console.error('Error checking room:', error);
+        if (roomError) {
+          console.error('Error checking room:', roomError);
           setRoomExists(false);
           setLoading(false);
           return;
         }
 
-        if (!room) {
+        if (!roomExists) {
           setRoomExists(false);
           setLoading(false);
           return;
@@ -73,29 +71,11 @@ export function useChat(roomKey: string) {
 
         setRoomExists(true);
 
-        if (room.creator_id) {
-          setRoomHost(room.creator_id);
-        }
-
-        // Get the first message to identify the room creator/host if creator_id missing
-        const { data: firstMessage } = await supabase
-          .from('messages')
-          .select('sender_id')
-          .eq('room_id', roomKey)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (!room.creator_id && firstMessage) {
-          setRoomHost(firstMessage.sender_id);
-        }
-
-        // Fetch existing messages
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('room_id', roomKey)
-          .order('created_at', { ascending: true });
+        // Fetch existing messages using secure RPC function
+        const { data: messagesData, error: messagesError } = await supabase.rpc('list_messages', {
+          _room_id: roomKey,
+          _limit: 200
+        });
 
         if (messagesError) {
           console.error('Error fetching messages:', messagesError);
@@ -208,14 +188,12 @@ export function useChat(roomKey: string) {
       // Encrypt the message
       const encryptedContent = encryptMessage(content, roomKey);
 
-      // Send to database
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          room_id: roomKey,
-          content: encryptedContent,
-          sender_id: userIdRef.current
-        });
+      // Send to database using secure RPC function
+      const { error } = await supabase.rpc('send_message_anonymous', {
+        _room_id: roomKey,
+        _client_id: userIdRef.current,
+        _content: encryptedContent
+      });
 
       if (error) {
         console.error('Error sending message:', error);
@@ -249,13 +227,27 @@ export function useChat(roomKey: string) {
     }
 
     try {
-      const { error } = await supabase
-        .from('rooms')
-        .insert({ id: roomKey, creator_id: userIdRef.current });
+      const { error } = await supabase.rpc('create_room_anonymous', {
+        _room_id: roomKey,
+        _creator_client_id: userIdRef.current
+      });
 
       if (error) {
-        console.error('Error creating room:', error);
-        throw error;
+        if (error.message === 'rate_limit_exceeded') {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "You can only create 30 rooms per hour. Please try again later.",
+            variant: "destructive"
+          });
+        } else {
+          console.error('Error creating room:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create room. Please try again.",
+            variant: "destructive"
+          });
+        }
+        return false;
       }
 
       setRoomExists(true);

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -46,6 +46,24 @@ export type Database = {
           },
         ]
       }
+      room_create_limits: {
+        Row: {
+          client_id: string
+          count: number
+          window_start: string
+        }
+        Insert: {
+          client_id: string
+          count?: number
+          window_start?: string
+        }
+        Update: {
+          client_id?: string
+          count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       rooms: {
         Row: {
           created_at: string
@@ -69,7 +87,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_and_increment_room_limit: {
+        Args: { _client_id: string; _limit?: number; _window?: unknown }
+        Returns: boolean
+      }
+      create_room_anonymous: {
+        Args: { _creator_client_id: string; _room_id: string }
+        Returns: undefined
+      }
+      list_messages: {
+        Args: { _limit?: number; _room_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          room_id: string
+          sender_id: string
+        }[]
+      }
+      room_exists_anonymous: {
+        Args: { _room_id: string }
+        Returns: boolean
+      }
+      send_message_anonymous: {
+        Args: { _client_id: string; _content: string; _room_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
